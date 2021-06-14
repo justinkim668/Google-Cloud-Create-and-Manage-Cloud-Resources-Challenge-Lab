@@ -1,0 +1,195 @@
+Welcome to Cloud Shell! Type "help" to get started.
+Your Cloud Platform project in this session is set to qwiklabs-gcp-02-258abece70ca.
+Use “gcloud config set project [PROJECT_ID]” to change to a different project.
+student_04_6b653247af3c@cloudshell:~ (qwiklabs-gcp-02-258abece70ca)$ gcloud compute instaces create nucleus-jumphost --machine-type f1-micro
+ERROR: (gcloud.compute) Invalid choice: 'instaces'.
+Maybe you meant:
+  gcloud compute addresses create
+  gcloud compute addresses delete
+  gcloud compute addresses describe
+  gcloud compute addresses list
+
+To search the help text of gcloud commands, run:
+  gcloud help -- SEARCH_TERMS
+student_04_6b653247af3c@cloudshell:~ (qwiklabs-gcp-02-258abece70ca)$ gcloud compute instances create nucleus-jumphost --machine-type f1-micro
+Did you mean zone [us-east1-b] for instance: [nucleus-jumphost] (Y/n)?
+  Y
+
+Created [https://www.googleapis.com/compute/v1/projects/qwiklabs-gcp-02-258abece70ca/zones/us-east1-b/instances/nucleus-jumphost].
+NAME              ZONE        MACHINE_TYPE  PREEMPTIBLE  INTERNAL_IP  EXTERNAL_IP  STATUS
+nucleus-jumphost  us-east1-b  f1-micro                   10.142.0.2   35.229.39.7  RUNNING
+student_04_6b653247af3c@cloudshell:~ (qwiklabs-gcp-02-258abece70ca)$ gcloud config set compute/zone us-east1-b
+Updated property [compute/zone].
+student_04_6b653247af3c@cloudshell:~ (qwiklabs-gcp-02-258abece70ca)$ gcloud container clusters create examplecluster
+WARNING: Starting in January 2021, clusters will use the Regular release channel by default when `--cluster-version`, `--release-channel`, `--no-enable-autoupgrade`, and `--no-enable-autorepair` flags are not specified.
+WARNING: Currently VPC-native is not the default mode during cluster creation. In the future, this will become the default mode and can be disabled using `--no-enable-ip-alias` flag. Use `--[no-]enable-ip-alias` flag to suppress this warning.
+WARNING: Starting with version 1.18, clusters will have shielded GKE nodes by default.
+WARNING: Your Pod address range (`--cluster-ipv4-cidr`) can accommodate at most 1008 node(s).
+WARNING: Starting with version 1.19, newly created clusters and node-pools will have COS_CONTAINERD as the default node image when no image type is specified.
+Creating cluster examplecluster in us-east1-b... Cluster is being health-checked (master is healthy)...done.
+Created [https://container.googleapis.com/v1/projects/qwiklabs-gcp-02-258abece70ca/zones/us-east1-b/clusters/examplecluster].
+To inspect the contents of your cluster, go to: https://console.cloud.google.com/kubernetes/workload_/gcloud/us-east1-b/examplecluster?project=qwiklabs-gcp-02-258abece70ca
+kubeconfig entry generated for examplecluster.
+NAME            LOCATION    MASTER_VERSION   MASTER_IP      MACHINE_TYPE  NODE_VERSION     NUM_NODES  STATUS
+examplecluster  us-east1-b  1.19.9-gke.1900  34.75.202.216  e2-medium     1.19.9-gke.1900  3          RUNNING
+student_04_6b653247af3c@cloudshell:~ (qwiklabs-gcp-02-258abece70ca)$ gcloud container clusters get-credentials examplecluster
+Fetching cluster endpoint and auth data.
+kubeconfig entry generated for examplecluster.
+student_04_6b653247af3c@cloudshell:~ (qwiklabs-gcp-02-258abece70ca)$ kubectl create deployment hello-server --image=gcr.io/google-samples/hello-app:2.0
+deployment.apps/hello-server created
+student_04_6b653247af3c@cloudshell:~ (qwiklabs-gcp-02-258abece70ca)$ kubectl expose deployment hello-server --type=LoadBalancer --port 8080
+service/hello-server exposed
+student_04_6b653247af3c@cloudshell:~ (qwiklabs-gcp-02-258abece70ca)$ kubectl get service
+NAME           TYPE           CLUSTER-IP      EXTERNAL-IP     PORT(S)          AGE
+hello-server   LoadBalancer   10.23.247.213   35.231.73.245   8080:30419/TCP   59s
+kubernetes     ClusterIP      10.23.240.1     <none>          443/TCP          5m5s
+student_04_6b653247af3c@cloudshell:~ (qwiklabs-gcp-02-258abece70ca)$ cat << EOF > startup.sh
+> #! /bin/bash
+> apt-get update
+> apt-get install -y nginx
+> service nginx start
+> sed -i -- 's/nginx/Google Cloud Platform - '"\$HOSTNAME"'/' /var/www/html/index.nginx-debian.html
+> EOF
+student_04_6b653247af3c@cloudshell:~ (qwiklabs-gcp-02-258abece70ca)$ gcloud compute instance-templates create nginx-template1 --metadata-from-file startup-script=startup.sh
+Created [https://www.googleapis.com/compute/v1/projects/qwiklabs-gcp-02-258abece70ca/global/instanceTemplates/nginx-template1].
+NAME             MACHINE_TYPE   PREEMPTIBLE  CREATION_TIMESTAMP
+nginx-template1  n1-standard-1               2021-06-13T18:37:25.677-07:00
+student_04_6b653247af3c@cloudshell:~ (qwiklabs-gcp-02-258abece70ca)$ gcloud compute target-pools create nginx-pool
+Did you mean region [us-east1] for target pool: [nginx-pool] (Y/n)?  Y
+
+Created [https://www.googleapis.com/compute/v1/projects/qwiklabs-gcp-02-258abece70ca/regions/us-east1/targetPools/nginx-pool].
+NAME        REGION    SESSION_AFFINITY  BACKUP  HEALTH_CHECKS
+nginx-pool  us-east1  NONE
+student_04_6b653247af3c@cloudshell:~ (qwiklabs-gcp-02-258abece70ca)$ gcloud compute instance-groups managed create nginx-group
+ERROR: (gcloud.compute.instance-groups.managed.create) argument --size --template: Must be specified.
+Usage: gcloud compute instance-groups managed create NAME --size=SIZE --template=TEMPLATE [optional flags]
+  optional flags may be  --base-instance-name | --description | --health-check |
+                         --help | --http-health-check | --https-health-check |
+                         --initial-delay | --instance-redistribution-type |
+                         --region | --stateful-disk |
+                         --target-distribution-shape | --target-pool | --zone |
+                         --zones
+
+For detailed information on this command and its flags, run:
+  gcloud compute instance-groups managed create --help
+student_04_6b653247af3c@cloudshell:~ (qwiklabs-gcp-02-258abece70ca)$ gcloud compute instance-groups managed create nginx-group \
+> --base-instance-name nginx \
+> size 2 \
+> template nginx-template \
+> exit
+ERROR: (gcloud.compute.instance-groups.managed.create) unrecognized arguments:
+  size
+  2
+  template
+  nginx-template
+  exit
+  To search the help text of gcloud commands, run:
+  gcloud help -- SEARCH_TERMS
+student_04_6b653247af3c@cloudshell:~ (qwiklabs-gcp-02-258abece70ca)$ gcloud compute instance-groups managed create nginx-group \
+> --base-instance-name nginx \
+> --size 2 \
+> --template nginx-template1 \
+> --target-pool nginx-pool
+Created [https://www.googleapis.com/compute/v1/projects/qwiklabs-gcp-02-258abece70ca/zones/us-east1-b/instanceGroupManagers/nginx-group].
+NAME         LOCATION    SCOPE  BASE_INSTANCE_NAME  SIZE  TARGET_SIZE  INSTANCE_TEMPLATE  AUTOSCALED
+nginx-group  us-east1-b  zone   nginx               0     2            nginx-template1    no
+student_04_6b653247af3c@cloudshell:~ (qwiklabs-gcp-02-258abece70ca)$ gcloud compute instances list
+NAME                                           ZONE        MACHINE_TYPE   PREEMPTIBLE  INTERNAL_IP  EXTERNAL_IP     STATUS
+gke-examplecluster-default-pool-5892c5db-6ztz  us-east1-b  e2-medium                   10.142.0.3   35.185.55.39    RUNNING
+gke-examplecluster-default-pool-5892c5db-rcvp  us-east1-b  e2-medium                   10.142.0.4   34.73.134.202   RUNNING
+gke-examplecluster-default-pool-5892c5db-xc6j  us-east1-b  e2-medium                   10.142.0.5   34.75.155.202   RUNNING
+nginx-38ln                                     us-east1-b  n1-standard-1               10.142.0.7   35.190.169.89   RUNNING
+nginx-43tj                                     us-east1-b  n1-standard-1               10.142.0.6   35.196.166.234  RUNNING
+nucleus-jumphost                               us-east1-b  f1-micro                    10.142.0.2   35.229.39.7     RUNNING
+student_04_6b653247af3c@cloudshell:~ (qwiklabs-gcp-02-258abece70ca)$ gcloud compute firewall-rules create www-firewall --allow tcp:80
+Creating firewall...⠹Created [https://www.googleapis.com/compute/v1/projects/qwiklabs-gcp-02-258abece70ca/global/firewalls/www-firewall].
+Creating firewall...done.
+NAME          NETWORK  DIRECTION  PRIORITY  ALLOW   DENY  DISABLED
+www-firewall  default  INGRESS    1000      tcp:80        False
+student_04_6b653247af3c@cloudshell:~ (qwiklabs-gcp-02-258abece70ca)$ gcloud compute forwarding-rules create nginx-lb \
+> --region us-east1 \
+> --ports 80 \
+ERROR: (gcloud.compute.forwarding-rules.create) unrecognized arguments:
+
+To search the help text of gcloud commands, run:
+  gcloud help -- SEARCH_TERMS
+student_04_6b653247af3c@cloudshell:~ (qwiklabs-gcp-02-258abece70ca)$ gcloud compute forwarding-rules create nginx-lb \
+> --region us-east1 \
+> --ports=80 \
+> --target-pool nginx-pool
+Created [https://www.googleapis.com/compute/v1/projects/qwiklabs-gcp-02-258abece70ca/regions/us-east1/forwardingRules/nginx-lb].
+student_04_6b653247af3c@cloudshell:~ (qwiklabs-gcp-02-258abece70ca)$ gcloud compute forwarding-rules list
+NAME                              REGION    IP_ADDRESS     IP_PROTOCOL  TARGET
+a159953c1d0014a739f69a8c25130b9b  us-east1  35.231.73.245  TCP          us-east1/targetPools/a159953c1d0014a739f69a8c25130b9b
+nginx-lb                          us-east1  34.74.45.109   TCP          us-east1/targetPools/nginx-pool
+student_04_6b653247af3c@cloudshell:~ (qwiklabs-gcp-02-258abece70ca)$ gcloud compute http-health-checks create http-basic-check
+Created [https://www.googleapis.com/compute/v1/projects/qwiklabs-gcp-02-258abece70ca/global/httpHealthChecks/http-basic-check].
+NAME              HOST  PORT  REQUEST_PATH
+http-basic-check        80    /
+student_04_6b653247af3c@cloudshell:~ (qwiklabs-gcp-02-258abece70ca)$ gcloud compute instance-groups managed set-named-ports nginx-group --named ports http:80
+ERROR: (gcloud.compute.instance-groups.managed.set-named-ports) unrecognized arguments:
+  --named (did you mean '--named-ports'?)
+  ports
+  http:80
+  To search the help text of gcloud commands, run:
+  gcloud help -- SEARCH_TERMS
+student_04_6b653247af3c@cloudshell:~ (qwiklabs-gcp-02-258abece70ca)$ gcloud compute instance-groups managed set-named-ports nginx-group --named-ports http:80
+Updated [https://www.googleapis.com/compute/v1/projects/qwiklabs-gcp-02-258abece70ca/zones/us-east1-b/instanceGroups/nginx-group].
+student_04_6b653247af3c@cloudshell:~ (qwiklabs-gcp-02-258abece70ca)$ gcloud compute backend-services create nginx-backend \
+> --protocol HTTP --http-health-checks http-basic-check --global
+Created [https://www.googleapis.com/compute/v1/projects/qwiklabs-gcp-02-258abece70ca/global/backendServices/nginx-backend].
+NAME           BACKENDS  PROTOCOL
+nginx-backend            HTTP
+student_04_6b653247af3c@cloudshell:~ (qwiklabs-gcp-02-258abece70ca)$ gcloud compute backend-services add-backend nginx-backend \
+> --instance-group nginx-group \
+> --instance-group-zone us-east1-b \
+ERROR: (gcloud.compute.backend-services.add-backend) unrecognized arguments:
+
+To search the help text of gcloud commands, run:
+  gcloud help -- SEARCH_TERMS
+student_04_6b653247af3c@cloudshell:~ (qwiklabs-gcp-02-258abece70ca)$ gcloud compute backend-services add-backend nginx-backend \
+> > --instance-group nginx-group \
+> > --instance-group-zone us-eastl-b \
+> --global
+ERROR: (gcloud.compute.backend-services.add-backend) unrecognized arguments:
+  nginx-group
+  us-eastl-b
+  To search the help text of gcloud commands, run:
+  gcloud help -- SEARCH_TERMS
+student_04_6b653247af3c@cloudshell:~ (qwiklabs-gcp-02-258abece70ca)$ gcloud compute backend-services add-backend nginx-backend \
+> --instance-group nginx-group \
+> --instance-group-zone us-eastl-b \
+> --global
+ERROR: (gcloud.compute.backend-services.add-backend) Could not fetch resource:
+ - Invalid value for field 'zone': 'us-eastl-b'. Unknown zone.
+
+student_04_6b653247af3c@cloudshell:~ (qwiklabs-gcp-02-258abece70ca)$ gcloud compute backend-services add-backend nginx-backend \
+> --instance-group nginx-group \
+> --instance-group-zone us-east1-b \
+ERROR: (gcloud.compute.backend-services.add-backend) unrecognized arguments:
+
+To search the help text of gcloud commands, run:
+  gcloud help -- SEARCH_TERMS
+student_04_6b653247af3c@cloudshell:~ (qwiklabs-gcp-02-258abece70ca)$ gcloud compute backend-services add-backend nginx-backend \
+> --instance-group nginx-group \
+> --global
+Updated [https://www.googleapis.com/compute/v1/projects/qwiklabs-gcp-02-258abece70ca/global/backendServices/nginx-backend].
+student_04_6b653247af3c@cloudshell:~ (qwiklabs-gcp-02-258abece70ca)$ gcloud compute url-maps create web-map --default-service nginx-backend
+Created [https://www.googleapis.com/compute/v1/projects/qwiklabs-gcp-02-258abece70ca/global/urlMaps/web-map].
+NAME     DEFAULT_SERVICE
+web-map  backendServices/nginx-backend
+student_04_6b653247af3c@cloudshell:~ (qwiklabs-gcp-02-258abece70ca)$ gcloud compute target-http-proxies create http-lb-proxy --url-map web-map
+Created [https://www.googleapis.com/compute/v1/projects/qwiklabs-gcp-02-258abece70ca/global/targetHttpProxies/http-lb-proxy].
+NAME           URL_MAP
+http-lb-proxy  web-map
+student_04_6b653247af3c@cloudshell:~ (qwiklabs-gcp-02-258abece70ca)$ gcloud compute forwarding-rules create http-content-rule \
+> --global \
+> --target-http-proxy http-lb-proxy \
+> --ports 80
+Created [https://www.googleapis.com/compute/v1/projects/qwiklabs-gcp-02-258abece70ca/global/forwardingRules/http-content-rule].
+student_04_6b653247af3c@cloudshell:~ (qwiklabs-gcp-02-258abece70ca)$ gcloud compute forwarding-rules list
+NAME                              REGION    IP_ADDRESS     IP_PROTOCOL  TARGET
+http-content-rule                           34.120.105.76  TCP          http-lb-proxy
+a159953c1d0014a739f69a8c25130b9b  us-east1  35.231.73.245  TCP          us-east1/targetPools/a159953c1d0014a739f69a8c25130b9b
+nginx-lb                          us-east1  34.74.45.109   TCP          us-east1/targetPools/nginx-pool
+student_04_6b653247af3c@cloudshell:~ (qwiklabs-gcp-02-258abece70ca)$
