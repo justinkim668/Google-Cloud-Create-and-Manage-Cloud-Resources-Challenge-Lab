@@ -1,6 +1,6 @@
 # Google-Cloud-Create-and-Manage-Cloud-Resources-Challenge-Lab
 
-For this lab, I completed the following tasks using gcloud command lineas part of the Google Cloud Higher Education Summer Challenge:
+For this lab, I completed the following tasks using gcloud command line as part of the Google Cloud Higher Education Summer Challenge:
 
 1. Created a virtual instance and used an f1-micro machine type.  
 2. Created a 3-node Kubernetes cluster and run a simple service. 
